@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Complete Guide to Building Skills for Claude - 图文教材</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: #f4f5f7;
+    margin: 0;
+    padding: 20px;
+  }
+  .book-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .page {
+    padding: 40px;
+  }
+  h1 { font-size: 2.2em; text-align: center; color: #111; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+  h2 { font-size: 1.6em; color: #2c3e50; margin-top: 40px; border-bottom: 1px solid #eaecef; padding-bottom: 8px; }
+  h3 { font-size: 1.3em; color: #34495e; margin-top: 25px; }
+  p { margin: 15px 0; font-size: 1.05em; color: #444; }
+  ul { padding-left: 20px; line-height: 1.7; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+  th { background-color: #f8f9fa; font-weight: bold; }
+  .example-box {
+    background-color: #f1f8ff;
+    border-left: 4px solid #0366d6;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .example-box p { margin: 5px 0; font-size: 0.95em; color: #24292e; }
+  .clue-box {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff9800;
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.95em;
+  }
+  .code-block {
+    background: #282c34;
+    color: #abb2bf;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: monospace;
+    overflow-x: auto;
+    margin: 15px 0;
+  }
+  .summary-box {
+    background-color: #e8f5e9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 40px;
+  }
+  .error-alert {
+    color: #d32f2f;
+    font-weight: bold;
+  }
+  .placeholder-img {
+    background: #e0e0e0;
+    border: 2px dashed #9e9e9e;
+    text-align: center;
+    padding: 30px;
+    color: #616161;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="book-container">
+  <div class="page">
+    <h1>The Complete Guide to Building Skills for Claude</h1>
+    
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+      <h3>学完本课，你将能回答：</h3>
+      <ul>
+        <li>Skill 的基本构成是什么？它遵循哪些核心设计原则？</li>
+        <li>如何定义具体的技能用例触发条件与步骤？</li>
+        <li>如何执行规范的文件结构搭建，并编写准确的 YAML 和 Markdown？</li>
+        <li>如何验证技能的触发准确率与功能完整性？</li>
+        <li>如何运用高级架构模式设计复杂的技能指令结构？</li>
+      </ul>
+    </div>
+
+    <h2>第一部分：基础概念与原理导入——理解技能与MCP的协同</h2>
+    <p>技能（Skill）是一个包含了指令的简单文件夹，它教会 Claude 如何处理特定的任务或工作流。通过技能，你无需在每次对话中重复解释你的偏好、流程和领域专业知识，而是教 Claude 一次，之后每次都能直接受益。</p>
+    <p>一个标准的技能文件夹通常包含必须的 <code>SKILL.md</code>（带有 YAML Frontmatter 的 Markdown 指令），以及可选的 <code>scripts/</code>（可执行代码）、<code>references/</code>（参考文档）和 <code>assets/</code>（模板、资产）。</p>
+    
+    <div class="clue-box">
+      <strong>记住一个实用的口诀是：</strong>"三个层级，按需加载（渐进式披露：System Prompt -> Body -> Linked files）"。
+    </div>
+    
+    <p>对于正在构建 MCP（模型上下文协议）集成的开发者来说，技能提供了在其之上的一层强大的知识抽象。为了更清楚地理解这一点，来看一个具体的类比：</p>
+
+    <div class="example-box">
+      <strong>【概念类比】厨房类比模型</strong>
+      <p>MCP provides the professional kitchen: access to tools, ingredients, and equipment. Skills provide the recipes: step-by-step instructions on how to create something valuable.</p>
+    </div>
+    
+    <div class="placeholder-img">
+      [图：左侧显示 MCP 抽象为厨房（包含锅碗瓢盆和食材），右侧显示 Skill 抽象为菜谱（包含分步的烹饪指南）]
+    </div>
+
+    <div class="clue-box">
+      <strong>打个比方：</strong>"将 MCP 比作提供工具和原料的专业厨房，将 Skill 比作菜谱"。没有技能时，用户面对一堆 API 工具往往不知道下一步该做什么；有了技能，预设的业务工作流就能在需要时自动激活，提供一致且可靠的最佳实践。
+    </div>
+
+    <h2>第二部分：规划与规范设计——从构思到文件落地</h2>
+    <p>在编写任何代码之前，你需要先明确 2 到 3 个具体的用例。你需要问自己：用户想完成什么？需要哪些多步工作流？需要哪些内置工具或 MCP？必须嵌入哪些最佳实践？</p>
+    
+    <div class="clue-box">
+      <strong>记住一个实用的口诀是：</strong>"写代码前，先定义触发词、步骤和预期结果"。
+    </div>
+
+    <div class="example-box">
+      <strong>【用例分析】项目 Sprint 规划用例</strong>
+      <p><strong>Trigger:</strong> User says "help me plan this sprint" or "create sprint tasks"</p>
+      <p><strong>Steps:</strong> 1. Fetch current project status from Linear (via MCP); 2. Analyze team velocity and capacity; 3. Suggest task prioritization; 4. Create tasks in Linear with proper labels and estimates.</p>
+      <p><strong>Result:</strong> Fully planned sprint with tasks created.</p>
+    </div>
+
+    <p>在 Anthropic 团队的实战中，我们观察到技能通常分为三大类：</p>
+    
+    <div class="example-box">
+      <strong>【概念演示】三大技能类别实例</strong>
+      <p>Category 1: frontend-design skill (Document & Asset Creation).</p>
+      <p>Category 2: skill-creator skill (Workflow Automation).</p>
+      <p>Category 3: sentry-code-review skill (MCP Enhancement).</p>
+    </div>
+
+    <div class="clue-box">
+      <strong>记住一个实用的口诀是：</strong>"如果需要外部系统数据，立刻想到它属于 Category 3: MCP Enhancement"。
+    </div>
+
+    <p>有了清晰的用例，我们需要定义怎么才算“好”：</p>
+
+    <div class="example-box">
+      <strong>【评估标准】成功标准度量</strong>
+      <p>Quantitative metrics: Skill triggers on 90% of relevant queries; Completes workflow in X tool calls; 0 failed API calls per workflow.</p>
+      <p>Qualitative metrics: Users don't need to prompt Claude about next steps; Workflows complete without user correction; Consistent results across sessions.</p>
+    </div>
+
+    <div class="clue-box">
+      <span class="error-alert">容易犯的错误是：</span>"没有明确衡量标准，全凭感觉"。<br>
+      <strong>正确做法是：</strong>结合定量的 API 成功率与定性的用户免干预率。
+    </div>
+
+    <p>技能的核心文件是 <code>SKILL.md</code>。请注意文件命名的绝对规范：必须是 kebab-case。</p>
+
+    <div class="example-box">
+      <strong>【方法示范】YAML Frontmatter 编写示范</strong>
+      <p><strong>Good:</strong> Analyzes Figma design files and generates developer handoff documentation. Use when user uploads .fig files, asks for "design specs", "component documentation", or "design-to-code handoff".</p>
+      <p><strong>Bad:</strong> Helps with projects.</p>
+    </div>
+
+    <div class="clue-box">
+      <strong>记住一个实用的口诀是：</strong>"描述公式：What it does + When to use it"。<br>
+      <span class="error-alert">容易犯的错误是：</span>在 YAML 中使用 XML 标签 (&lt; &gt;)。绝对禁止，因为这是系统提示词注入口，有安全限制。
+    </div>
+
+    <div class="example-box">
+      <strong>【结构示范】Markdown 主体指令模板</strong>
+      <div class="code-block">
+# Your Skill Name
+## Instructions
+### Step 1: [First Major Step]
+...
+## Examples
+### Example 1: [common scenario]
+...
+## Troubleshooting
+      </div>
+    </div>
+
+    <h2>第三部分：测试、迭代与分发——验证你的技能</h2>
+    <p>对于触发测试，我们需要构造正向和负向样本：</p>
+
+    <div class="example-box">
+      <strong>【边界测试】技能触发测试用例</strong>
+      <p><strong>Should trigger:</strong> "Help me set up a new ProjectHub workspace", "I need to create a project in ProjectHub"</p>
+      <p><strong>Should NOT trigger:</strong> "What's the weather in San Francisco?", "Create a spreadsheet"</p>
+    </div>
+
+    <div class="clue-box">
+      <strong>打个比方：</strong>负向触发测试就像"安检的白名单测试，拒绝无关内容"。
+    </div>
+
+    <h2>第四部分：高级架构模式解析——解决复杂业务需求</h2>
+    
+    <div class="example-box">
+      <strong>【架构实例】5 种高级模式整合</strong>
+      <p><strong>Pattern 1: Sequential workflow orchestration</strong> (步骤依赖流转)</p>
+      <p><strong>Pattern 2: Multi-MCP coordination</strong> (跨系统传参协同)</p>
+      <p><strong>Pattern 3: Iterative refinement</strong> (带自我检验循环)</p>
+      <p><strong>Pattern 4: Context-aware tool selection</strong> (决策树分支路由)</p>
+      <p><strong>Pattern 5: Domain-specific intelligence</strong> (前置规则拦截审核)</p>
+    </div>
+
+    <div class="placeholder-img">
+      [图：展示五种模式的流程图简图，从线性的 Pattern 1 到带有循环的 Pattern 3 以及带决策树的 Pattern 4]
+    </div>
+
+    <div class="clue-box">
+      <span class="error-alert">容易犯的错误是：</span>"依赖自然语言让 LLM 自己判断分支"。<br>
+      <strong>正确做法是：</strong>提供明确的 If-Else 决策树（Pattern 4）。
+    </div>
+
+    <div class="summary-box">
+      <h2>本课总结</h2>
+      <h3>核心要点</h3>
+      <ul>
+        <li>Skill 的定义与核心设计原则（渐进式披露、可组合性、可移植性）</li>
+        <li>用例定义方法与常见类别（资产生成、流程自动化、MCP增强）</li>
+        <li>SKILL.md 的技术规范（文件命名、YAML Frontmatter 规则与 Markdown 结构）</li>
+        <li>技能的测试方法（触发测试、功能测试、性能对比）与迭代策略</li>
+        <li>常见的高级架构模式（顺序流、跨系统、循环优化、动态路由、规则封装）</li>
+      </ul>
+      
+      <h3>易错提醒</h3>
+      <ul>
+        <li class="error-alert">警告：直接将所有指令塞给 Claude。正确做法是通过渐进式披露按需加载。</li>
+        <li class="error-alert">警告：没有明确衡量标准，全凭感觉。正确做法是结合定量与定性指标。</li>
+        <li class="error-alert">警告：在 YAML 中使用 XML 标签 (&lt; &gt;)。这是系统提示词注入口，有严格安全限制。</li>
+        <li class="error-alert">警告：一上来就做庞大的自动化测试集。正确做法是先在单个高难度任务上跑通并抽取经验。</li>
+        <li class="error-alert">警告：依赖自然语言让 LLM 自己判断分支。正确做法是提供明确的 If-Else 决策树。</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

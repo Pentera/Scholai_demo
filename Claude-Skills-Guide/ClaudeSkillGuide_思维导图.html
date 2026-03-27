@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Complete Guide to Building Skills for Claude - 思维导图</title>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f5; }
+    #toolbar {
+      position: fixed; top: 16px; right: 16px; z-index: 100;
+    }
+    #save-png-btn {
+      padding: 8px 20px;
+      background: #4a90e2; color: white; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 14px;
+    }
+    #save-png-btn:hover { background: #357abd; }
+    .markmap { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="save-png-btn" onclick="savePNG()">保存为 PNG</button>
+  </div>
+  <div class="markmap">
+    <script type="text/template">
+# The Complete Guide to Building Skills for Claude
+
+## 理解技能核心概念与原则
+- Skill 的定义
+- 渐进式披露原则
+- 可组合性原则
+- 可移植性原则
+
+## 规划与设计技能场景
+- 用例定义方法
+- 文档生成类别
+- 工作流自动化类别
+- MCP 增强类别
+
+## 编写标准化的技能文件
+- SKILL.md 技术规范
+- 文件命名要求
+- 目录结构要求
+- YAML Frontmatter 编写规则
+- Markdown 主体结构
+
+## 测试与迭代技能
+- 触发测试方法
+- 功能测试方法
+- 性能对比方法
+- 执行异常排查策略
+- 描述调整与迭代策略
+
+## 应用高级技能设计模式
+- 顺序工作流架构模式
+- 多 MCP 协调架构模式
+- 迭代优化架构模式
+- 上下文感知架构模式
+- 领域特定智能架构模式
+    </script>
+  </div>
+  <script>
+    async function savePNG() {
+      const svg = document.querySelector('svg.markmap');
+      if (!svg) { alert('思维导图尚未加载完成，请稍后再试'); return; }
+
+      const scale = 2;
+      const padding = 24;
+      const bbox = svg.getBBox();
+      const w = bbox.width + padding * 2;
+      const h = bbox.height + padding * 2;
+
+      // 将 live 元素的 computedStyle 内联到克隆节点，确保样式完整保留
+      const clone = svg.cloneNode(true);
+      const liveEls = Array.from(svg.querySelectorAll('*'));
+      const cloneEls = Array.from(clone.querySelectorAll('*'));
+      const inlineProps = [
+        'fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity',
+        'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
+        'opacity', 'font-size', 'font-family', 'font-weight',
+        'text-anchor', 'dominant-baseline', 'display', 'visibility'
+      ];
+      liveEls.forEach((el, i) => {
+        const cloneEl = cloneEls[i];
+        if (!cloneEl) return;
+        const computed = window.getComputedStyle(el);
+        inlineProps.forEach(prop => {
+          const val = computed.getPropertyValue(prop);
+          if (val) cloneEl.setAttribute(prop, val);
+        });
+        // 强制移除 filter（避免黑色轮廓）
+        cloneEl.removeAttribute('filter');
+        cloneEl.style.filter = 'none';
+      });
+      clone.querySelectorAll('filter').forEach(el => el.remove());
+
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${w} ${h}`);
+
+      // 注入样式：去掉文字下划线，禁止所有 filter
+      const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      styleEl.textContent = '* { filter: none !important; } a, text, tspan { text-decoration: none !important; }';
+      clone.insertBefore(styleEl, clone.firstChild);
+
+      const svgStr = new XMLSerializer().serializeToString(clone);
+      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const filename = document.title.replace(' - 思维导图', '') + '_思维导图.png';
+
+      const img = new Image();
+      img.onload = async function () {
+        try {
+          ctx.drawImage(img, 0, 0, w, h);
+
+          if (window.showSaveFilePicker) {
+            try {
+              const handle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
+              });
+              const writable = await handle.createWritable();
+              canvas.toBlob(async (blob) => {
+                await writable.write(blob);
+                await writable.close();
+              }, 'image/png');
+              return;
+            } catch (e) {
+              if (e.name === 'AbortError') return;
+            }
+          }
+
+          const a = document.createElement('a');
+          a.download = filename;
+          a.href = canvas.toDataURL('image/png');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          alert('PNG 导出失败：' + e.message);
+        }
+      };
+      img.onerror = function () {
+        alert('图片渲染失败，无法导出 PNG。');
+      };
+      img.src = dataUri;
+    }
+  </script>
+</body>
+</html>
