@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课程思维导图 - 思维导图</title>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f5; }
+    #toolbar {
+      position: fixed; top: 16px; right: 16px; z-index: 100;
+    }
+    #save-png-btn {
+      padding: 8px 20px;
+      background: #4a90e2; color: white; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 14px;
+    }
+    #save-png-btn:hover { background: #357abd; }
+    .markmap { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="save-png-btn" onclick="savePNG()">保存为 PNG</button>
+  </div>
+  <div class="markmap">
+    <script type="text/template">
+# “讨好所有人”的商业盲区
+
+## “讨好所有人”策略的商业风险
+- “只要我足够好，就能服务所有人”是一个商业认知盲区
+
+## 服务所有客户的隐性成本
+- 口碑稀释
+- 核心客户服务质量下降
+
+## 客户管理的资源分配本质
+- 客户关系管理的核心是有限资源的战略性分配，而非情绪安抚
+
+## 客户筛选与边界设定策略
+- 方法一：通过清晰定位在招生环节进行自然筛选
+- 方法二：通过显性化服务标准在服务过程中设定清晰边界
+
+## 客户边界、定位与定价权的关系
+- 商业逻辑链：清晰的客户边界有助于建立市场定位，最终影响服务的定价权
+    </script>
+  </div>
+  <script>
+    async function savePNG() {
+      const svg = document.querySelector('svg.markmap');
+      if (!svg) { alert('思维导图尚未加载完成，请稍后再试'); return; }
+
+      const scale = 2;
+      const padding = 24;
+      const bbox = svg.getBBox();
+      const w = bbox.width + padding * 2;
+      const h = bbox.height + padding * 2;
+
+      // 将 live 元素的 computedStyle 内联到克隆节点，确保样式完整保留
+      const clone = svg.cloneNode(true);
+      const liveEls = Array.from(svg.querySelectorAll('*'));
+      const cloneEls = Array.from(clone.querySelectorAll('*'));
+      const inlineProps = [
+        'fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity',
+        'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
+        'opacity', 'font-size', 'font-family', 'font-weight',
+        'text-anchor', 'dominant-baseline', 'display', 'visibility'
+      ];
+      liveEls.forEach((el, i) => {
+        const cloneEl = cloneEls[i];
+        if (!cloneEl) return;
+        const computed = window.getComputedStyle(el);
+        inlineProps.forEach(prop => {
+          const val = computed.getPropertyValue(prop);
+          if (val) cloneEl.setAttribute(prop, val);
+        });
+        // 强制移除 filter（避免黑色轮廓）
+        cloneEl.removeAttribute('filter');
+        cloneEl.style.filter = 'none';
+      });
+      clone.querySelectorAll('filter').forEach(el => el.remove());
+
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${w} ${h}`);
+
+      // 注入样式：去掉文字下划线，禁止所有 filter
+      const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      styleEl.textContent = '* { filter: none !important; } a, text, tspan { text-decoration: none !important; }';
+      clone.insertBefore(styleEl, clone.firstChild);
+
+      const svgStr = new XMLSerializer().serializeToString(clone);
+      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const filename = document.title.replace(' - 思维导图', '') + '_思维导图.png';
+
+      const img = new Image();
+      img.onload = async function () {
+        try {
+          ctx.drawImage(img, 0, 0, w, h);
+
+          if (window.showSaveFilePicker) {
+            try {
+              const handle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
+              });
+              const writable = await handle.createWritable();
+              canvas.toBlob(async (blob) => {
+                await writable.write(blob);
+                await writable.close();
+              }, 'image/png');
+              return;
+            } catch (e) {
+              if (e.name === 'AbortError') return;
+            }
+          }
+
+          const a = document.createElement('a');
+          a.download = filename;
+          a.href = canvas.toDataURL('image/png');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          alert('PNG 导出失败：' + e.message);
+        }
+      };
+      img.onerror = function () {
+        alert('图片渲染失败，无法导出 PNG。');
+      };
+      img.src = dataUri;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>test02 图文教材</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f9f9f9; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #2c3e50; }
+        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 30px; }
+        h2 { margin-top: 40px; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        code { font-family: "Courier New", Courier, monospace; }
+        .info-box { background: #e8f4f8; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>test02 图文教材文档</h1>
+        
+        <div class="info-box">
+            <p><strong>课程名称</strong>：test02</p>
+            <p><strong>课程简介</strong>：这是一节 Python 编程的第一课，主要介绍了如何使用 print 函数输出字符串，以及变量的基本概念和赋值操作。</p>
+            <p><strong>目标受众</strong>：零基础初学者。</p>
+        </div>
+
+        <h2>章节 1：Hello World，你的第一行代码</h2>
+        <h3>核心概念：什么是 print？</h3>
+        <p>在 Python 中，<code>print()</code> 就像是一个扩音器，它能把你想说的话在终端（也就是屏幕下方的小黑框里）展示出来。</p>
+        
+        <h3>动手实践：输出 Hello World</h3>
+        <p>让我们打开 VS Code 编辑器。在这个简单的环境中，输入以下代码：</p>
+        <pre><code class="language-python">print("Hello World")</code></pre>
+        <p>输入完毕后，点击顶部的运行按钮。大家可以看到，下方的终端里打印出了 <code>Hello World</code>。这就是你和计算机的第一次对话！</p>
+        <hr>
+
+        <h2>章节 2：认识变量与赋值</h2>
+        <h3>核心概念：装数据的盒子</h3>
+        <p>接下来是<strong>变量</strong>。你可以把变量看作是一个“盒子”，这个盒子专门用来装我们要使用的数据。给盒子贴上标签（变量名），然后往里面放东西（赋值），就是编程中最常见的操作。</p>
+
+        <h3>动手实践：给变量赋值</h3>
+        <p>让我们来看看在代码里如何操作一个变量：</p>
+        <pre><code class="language-python">x = 10
+print(x)</code></pre>
+        <p><code>x = 10</code>：我们在内存里找了个盒子，贴上标签 <code>x</code>，然后把数字 <code>10</code> 放了进去。<br>
+        <code>print(x)</code>：我们让计算机把盒子 <code>x</code> 里的东西拿出来，通过扩音器打印在屏幕上。</p>
+        <p>运行之后，屏幕会输出数字 <code>10</code>。这就是变量的本质——它帮助我们在程序运行期间暂存和调用数据。</p>
+    </div>
+</body>
+</html>
