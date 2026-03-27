@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw 接入微信——官方 ClawBot 插件安装与使用教程 - 思维导图</title>
+  <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.16"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f5f5f5; }
+    #toolbar {
+      position: fixed; top: 16px; right: 16px; z-index: 100;
+    }
+    #save-png-btn {
+      padding: 8px 20px;
+      background: #4a90e2; color: white; border: none; border-radius: 6px;
+      cursor: pointer; font-size: 14px;
+    }
+    #save-png-btn:hover { background: #357abd; }
+    .markmap { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button id="save-png-btn" onclick="savePNG()">保存为 PNG</button>
+  </div>
+  <div class="markmap">
+    <script type="text/template">
+# OpenClaw 接入微信——官方 ClawBot 插件安装与使用教程
+
+## 微信版本升级与插件入口定位
+- 在应用商店中将微信升级至最新版本
+- 进入微信"我"→"设置"→"插件"界面
+- 检查列表中是否出现"微信 ClawBot"入口
+- 如果未出现入口，从手机后台彻底关闭微信进程
+- 重新打开微信，再次进入插件界面检查（触发灰度推送检测）
+
+## 使用命令行一键安装 ClawBot 插件
+- 确保本地已安装 Node.js 运行环境
+- 打开本地终端（如 macOS Terminal 或 Windows PowerShell）
+- 输入官方安装命令：npx -y <官方安装包名>
+- 回车执行命令，等待安装进度完成
+- 安装完成后等待终端弹出二维码
+
+## 扫码绑定微信账号与 OpenClaw
+- 确认当前要用于绑定 ClawBot 的目标微信号
+- 打开目标微信的扫一扫功能
+- 扫描本地终端上弹出的安装完成二维码
+- 在手机微信弹出的授权提示中点击"连接"
+- 确认手机进入 ClawBot 对话窗口，完成绑定
+
+## 在微信中调用 OpenClaw AI 进行对话与资讯查询
+- 打开手机微信中的 ClawBot 聊天窗口
+- 发送"你好"等简单问候语验证基础连通性
+- 发送具体的任务型请求（如"查询24小时最新AI资讯"）
+- 接收并查看 AI 返回的结构化任务结果
+
+## 理解 ClawBot 的使用限制与账号管理规则
+- 单点绑定限制：一个微信号只能绑定一个 OpenClaw 实例
+- 账号解绑与更换：更换绑定账号需重新执行安装扫码流程
+- 设备支持限制：目前仅支持手机端微信，不支持电脑端微信
+- Agent 切换方法：在终端运行 openclaw config 命令绑定指定 Agent
+- 隐私与安全隔离：他人无法添加你的 ClawBot，也无法将其拉入群聊
+
+## 评估 AI-IM 集成趋势对个人工作流的战略意义
+- 识别 AI 嵌入常用 IM 平台的核心优势（不改变使用习惯、降低使用门槛）
+- 评估基于 IM 的 AI 助手对个人日常任务执行效率的提升价值
+- 判断早期采纳此类集成工具所带来的先发优势
+    </script>
+  </div>
+  <script>
+    async function savePNG() {
+      const svg = document.querySelector('svg.markmap');
+      if (!svg) { alert('思维导图尚未加载完成，请稍后再试'); return; }
+
+      const scale = 2;
+      const padding = 24;
+      const bbox = svg.getBBox();
+      const w = bbox.width + padding * 2;
+      const h = bbox.height + padding * 2;
+
+      // 将 live 元素的 computedStyle 内联到克隆节点，确保样式完整保留
+      const clone = svg.cloneNode(true);
+      const liveEls = Array.from(svg.querySelectorAll('*'));
+      const cloneEls = Array.from(clone.querySelectorAll('*'));
+      const inlineProps = [
+        'fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity',
+        'stroke-linecap', 'stroke-linejoin', 'stroke-dasharray',
+        'opacity', 'font-size', 'font-family', 'font-weight',
+        'text-anchor', 'dominant-baseline', 'display', 'visibility'
+      ];
+      liveEls.forEach((el, i) => {
+        const cloneEl = cloneEls[i];
+        if (!cloneEl) return;
+        const computed = window.getComputedStyle(el);
+        inlineProps.forEach(prop => {
+          const val = computed.getPropertyValue(prop);
+          if (val) cloneEl.setAttribute(prop, val);
+        });
+        // 强制移除 filter（避免黑色轮廓）
+        cloneEl.removeAttribute('filter');
+        cloneEl.style.filter = 'none';
+      });
+      clone.querySelectorAll('filter').forEach(el => el.remove());
+
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      clone.setAttribute('viewBox', `${bbox.x - padding} ${bbox.y - padding} ${w} ${h}`);
+
+      // 注入样式：去掉文字下划线，禁止所有 filter
+      const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+      styleEl.textContent = '* { filter: none !important; } a, text, tspan { text-decoration: none !important; }';
+      clone.insertBefore(styleEl, clone.firstChild);
+
+      const svgStr = new XMLSerializer().serializeToString(clone);
+      const dataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgStr);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = w * scale;
+      canvas.height = h * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+
+      const filename = document.title.replace(' - 思维导图', '') + '_思维导图.png';
+
+      const img = new Image();
+      img.onload = async function () {
+        try {
+          ctx.drawImage(img, 0, 0, w, h);
+
+          if (window.showSaveFilePicker) {
+            try {
+              const handle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{ description: 'PNG 图片', accept: { 'image/png': ['.png'] } }]
+              });
+              const writable = await handle.createWritable();
+              canvas.toBlob(async (blob) => {
+                await writable.write(blob);
+                await writable.close();
+              }, 'image/png');
+              return;
+            } catch (e) {
+              if (e.name === 'AbortError') return;
+            }
+          }
+
+          const a = document.createElement('a');
+          a.download = filename;
+          a.href = canvas.toDataURL('image/png');
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } catch (e) {
+          alert('PNG 导出失败：' + e.message);
+        }
+      };
+      img.onerror = function () {
+        alert('图片渲染失败，无法导出 PNG。');
+      };
+      img.src = dataUri;
+    }
+  </script>
+</body>
+</html>

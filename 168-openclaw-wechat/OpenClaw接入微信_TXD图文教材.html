@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 接入微信——官方 ClawBot 插件安装与使用教程</title>
+    <style>
+        :root {
+            --primary-color: #333333;
+            --bg-color: #ffffff;
+            --sidebar-bg: #f9f9f9;
+            --sidebar-hover: #eaeaea;
+            --active-item: #e0e0e0;
+            --highlight-bg: #fff5e6;
+            --emphasis-color: #d9534f;
+            --logic-color: #1E803D;
+            --text-color: #333333;
+            --muted-color: #777777;
+            --border-color: #eeeeee;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        #sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            flex-shrink: 0;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--muted-color);
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-hover);
+            color: var(--primary-color);
+        }
+
+        .nav-item.active {
+            background-color: var(--active-item);
+            color: var(--primary-color);
+            font-weight: 600;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .nav-level-2 {
+            padding-left: 32px;
+            font-size: 13px;
+        }
+
+        #right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 60px;
+            scroll-behavior: smooth;
+        }
+
+        .page {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .breadcrumb {
+            font-size: 12px;
+            color: var(--muted-color);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            line-height: 1.3;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+
+        ul, ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        strong.highlight {
+            background-color: var(--highlight-bg);
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .emphasis {
+            color: var(--emphasis-color);
+            font-weight: 600;
+        }
+
+        .logic {
+            color: var(--logic-color);
+            font-weight: 600;
+        }
+
+        .visual-box {
+            background-color: #fafafa;
+            border-left: 4px solid var(--muted-color);
+            padding: 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--muted-color);
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            padding: 16px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .example-block {
+            background-color: #fdfdfd;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+
+        .example-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--primary-color);
+        }
+
+        #nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 10;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--primary-color);
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            font-size: 14px;
+            color: var(--muted-color);
+        }
+
+        /* Mobile Hamburger */
+        .mobile-header {
+            display: none;
+            padding: 16px;
+            background: var(--bg-color);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar {
+                position: fixed;
+                left: -240px;
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                transition: left 0.3s;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            }
+            #sidebar.open {
+                left: 0;
+            }
+            .mobile-header {
+                display: flex;
+            }
+            #content-area {
+                padding: 30px 20px 80px 20px;
+            }
+            #nav-bar {
+                padding: 0 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav id="sidebar">
+        <div class="nav-item active" data-target="0">课程封面</div>
+        <div class="nav-item" data-target="1">第一部分：先发优势</div>
+        <div class="nav-item" data-target="2">第二部分：安装前准备</div>
+        <div class="nav-item nav-level-2" data-target="3">操作示例：入口定位</div>
+        <div class="nav-item" data-target="4">第三部分：安装与绑定</div>
+        <div class="nav-item nav-level-2" data-target="5">操作示例：命令行扫码</div>
+        <div class="nav-item" data-target="6">第四部分：效果验证</div>
+        <div class="nav-item nav-level-2" data-target="7">操作示例：消息验证</div>
+        <div class="nav-item" data-target="8">第五部分：四项限制</div>
+        <div class="nav-item nav-level-2" data-target="9">操作示例：Agent 切换</div>
+        <div class="nav-item" data-target="10">本课总结</div>
+    </nav>
+
+    <div id="right-panel">
+        <div class="mobile-header">
+            <button class="hamburger" onclick="toggleSidebar()">☰</button>
+            <span style="margin-left: 16px; font-weight: 600;">目录</span>
+        </div>
+
+        <div id="content-area">
+
+            <!-- Page 0 -->
+            <div class="page" data-index="0" style="display: block;">
+                <div class="breadcrumb">课程封面</div>
+                <h1>OpenClaw 接入微信——官方 ClawBot 插件安装与使用教程</h1>
+                <p><strong>学完本课，你将能回答：</strong></p>
+                <ul>
+                    <li>如何将微信升级并找到 ClawBot 插件入口？</li>
+                    <li>怎么用一行命令行指令完成 ClawBot 的安装？</li>
+                    <li>安装后如何扫码绑定微信账号？</li>
+                    <li>绑定成功后怎么在微信里向 OpenClaw 发送消息和任务？</li>
+                    <li>ClawBot 有哪些使用限制？如何切换绑定的 Agent？</li>
+                    <li>"AI 嵌入 IM"这一趋势对我的工作流有什么战略意义？</li>
+                </ul>
+            </div>
+
+            <!-- Page 1 -->
+            <div class="page" data-index="1">
+                <div class="breadcrumb">第一部分 › 先发优势</div>
+                <h2>第一部分：为什么这次更新很重要——AI 嵌入 IM 的先发优势</h2>
+                <p>微信官方正式推出了 OpenClaw 插件，名称叫做 <strong class="highlight">ClawBot</strong>。这件事情的意义非常大：它意味着 OpenClaw 终于可以更安全、更方便地接入个人微信，你不再需要来回切换 App，也不需要折腾复杂的第三方方案。装完之后，你可以在自己的微信里直接和 OpenClaw 进行对话——就像和好友聊天一样，随时调用自己的 AI Agent。</p>
+                <p>这一集成模式的核心逻辑是：<span class="logic">不改变现有使用习惯 → 降低使用门槛 → 先发优势越大</span>。随着越来越多的平台接入 OpenClaw，AI 嵌入 IM 很可能会成为人们与 Agent 交互的主流方式。</p>
+                <p><span class="emphasis">需要注意的是：</span><strong>"ClawBot 并非第三方插件或民间魔改版"</strong>，所以无需担心账号安全和隐私问题。他人无法添加你的 ClawBot，也无法将其拉进群聊。</p>
+                <p>可以这样理解：<strong>"把 AI 助手直接塞到微信里"</strong>，就是零切换、即用即得的最佳注脚。</p>
+            </div>
+
+            <!-- Page 2 -->
+            <div class="page" data-index="2">
+                <div class="breadcrumb">第二部分 › 安装前准备</div>
+                <h2>第二部分：安装前的准备——微信升级与插件入口定位</h2>
+                <p>在开始安装之前，我们需要先完成一个前置步骤：确认微信已升级到最新版本，并找到 ClawBot 插件的入口。</p>
+                <p><strong>操作步骤：</strong></p>
+                <ol>
+                    <li>打开应用商店，将微信更新至最新版本</li>
+                    <li>进入微信 → 右下角点击"我" → "设置" → "插件"</li>
+                    <li>检查列表中是否出现"微信 ClawBot"</li>
+                </ol>
+                
+                <div class="visual-box">
+                    <svg width="100%" height="120" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="10" width="380" height="100" rx="8" fill="#f0f0f0" stroke="#ccc"/>
+                        <text x="30" y="45" font-family="sans-serif" font-size="16" fill="#333">微信设置 &gt; 插件界面</text>
+                        <rect x="30" y="60" width="340" height="30" rx="4" fill="#fff" stroke="#4CAF50"/>
+                        <text x="45" y="80" font-family="sans-serif" font-size="14" fill="#4CAF50">✅ 微信 ClawBot (点击进入)</text>
+                    </svg>
+                </div>
+
+                <p>目前 ClawBot 处于灰度推送阶段，并非所有用户都会在第一时间收到推送。如果更新后在插件列表中没有看到 ClawBot，不用担心——记住：<strong>"看到更新后找不到新功能入口，立刻想到后台划掉 App 进程，重启触发灰度推送检测"</strong>。</p>
+                
+                <p><strong>解决方法：</strong><br>
+                从手机后台彻底关闭微信进程，重新打开微信后再次进入"插件"界面，通常就能看到 ClawBot 入口了。</p>
+                
+                <p><span class="emphasis">需要注意的是：</span><strong>"不要在没有看到 ClawBot 入口的情况下就继续安装步骤"</strong>，正确做法是先确认入口可见，再进行后续操作。</p>
+            </div>
+
+            <!-- Page 3 -->
+            <div class="page" data-index="3">
+                <div class="breadcrumb">第二部分 › 操作示例</div>
+                <div class="example-block">
+                    <div class="example-title">【操作示例】定位 ClawBot 插件入口</div>
+                    <p><strong>情境</strong>：打开微信后更新到最新版本，但在"设置→插件"中没有看到 ClawBot。</p>
+                    <p><strong>操作步骤</strong>：</p>
+                    <ol>
+                        <li>确认微信已更新至最新版本（应用商店中显示"已是最新"）</li>
+                        <li>进入微信 → "我" → "设置" → "插件"</li>
+                        <li>若未出现 ClawBot：从手机后台彻底关闭微信</li>
+                        <li>重新打开微信，再次进入"设置→插件"</li>
+                        <li>查看 ClawBot 入口是否出现</li>
+                    </ol>
+                    <p><strong>结果</strong>：插件列表中出现"微信 ClawBot"即为成功，可进行下一步安装。</p>
+                </div>
+            </div>
+
+            <!-- Page 4 -->
+            <div class="page" data-index="4">
+                <div class="breadcrumb">第三部分 › 安装与绑定</div>
+                <h2>第三部分：核心安装流程——命令行一键安装与扫码绑定</h2>
+                
+                <h3>一、命令行安装 ClawBot</h3>
+                <p>安装过程非常简单。官方提供了一行命令行指令，让整个安装过程像"一键安装 App"一样便捷。</p>
+                <p>打开本地终端（macOS 的 Terminal、Windows 的 PowerShell 等均可），输入官方提供的安装命令：</p>
+                
+                <div class="code-block">npx -y &lt;官方ClawBot安装包名&gt;</div>
+
+                <p>其中，<code>npx -y</code> 是 Node.js 包管理工具的自动确认参数，意思是"自动安装并运行，无需手动确认权限"；后面跟上官方 ClawBot 安装包名称，回车执行即可。</p>
+                
+                <div class="visual-box">
+                    <svg width="100%" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="0" y="0" width="400" height="100" fill="#2d2d2d" rx="4"/>
+                        <text x="20" y="30" fill="#4AF626" font-family="monospace" font-size="14">$ npx -y @openclaw/wechat-plugin</text>
+                        <text x="20" y="60" fill="#ccc" font-family="monospace" font-size="12">Installing...</text>
+                        <text x="20" y="80" fill="#ccc" font-family="monospace" font-size="12">Scan QR code to bind:</text>
+                    </svg>
+                </div>
+
+                <p>简单来说：<strong>"看到 npx -y，立刻想到使用 Node 包管理工具自动安装，不需要手动确认权限"</strong>。</p>
+                <p><span class="emphasis">需要注意的是：</span><strong>"不要自行搜索安装命令，应使用官方文档或教程中提供的完整命令"</strong>，确保安装的是官方版本。</p>
+
+                <h3>二、扫码绑定微信账号</h3>
+                <p>命令执行完毕后，终端会自动弹出一个二维码。</p>
+                
+                <p>此时：</p>
+                <ul>
+                    <li>打开你要绑定的微信号</li>
+                    <li>扫描终端中的二维码</li>
+                    <li>手机端弹出确认提示"是否将 OpenClaw 连接到微信"，点击<strong>"连接"</strong></li>
+                </ul>
+
+                <p><span class="emphasis">需要特别注意：</span><strong>"用哪个微信号扫码，就是将 ClawBot 绑定到哪个账号"</strong>。后续使用 ClawBot 必须在该账号下进行，请提前确认好要绑定的账号。</p>
+                <p>记住：<strong>"看到终端弹出二维码，立刻想到选对微信号 → 扫码 → 手机端点击'连接'"</strong>。</p>
+            </div>
+
+            <!-- Page 5 -->
+            <div class="page" data-index="5">
+                <div class="breadcrumb">第三部分 › 操作示例</div>
+                <div class="example-block">
+                    <div class="example-title">【操作示例】命令行安装 ClawBot 并完成扫码绑定</div>
+                    <p><strong>前置条件</strong>：已找到 ClawBot 插件入口；本地已安装 Node.js（支持 npx）</p>
+                    <p><strong>操作步骤</strong>：</p>
+                    <ol>
+                        <li>打开本地终端</li>
+                        <li>输入命令：<code>npx -y &lt;官方ClawBot安装包名&gt;</code>，按回车执行</li>
+                        <li>等待安装完成，终端输出安装进度日志</li>
+                        <li>安装完成后，终端自动弹出二维码</li>
+                        <li>打开目标微信号，扫描二维码</li>
+                        <li>手机端弹出授权提示，点击"连接"</li>
+                        <li>手机微信自动进入 ClawBot 对话窗口</li>
+                    </ol>
+                    <p><strong>结果</strong>：手机微信出现 ClawBot 对话窗口，绑定完成。</p>
+                </div>
+            </div>
+
+            <!-- Page 6 -->
+            <div class="page" data-index="6">
+                <div class="breadcrumb">第四部分 › 效果验证</div>
+                <h2>第四部分：效果验证——在微信里和 AI 对话</h2>
+                <p>绑定完成后，打开手机微信中的 ClawBot 对话窗口，开始验证。</p>
+                
+                <p><strong>第一步：验证连通性</strong></p>
+                <p>发送"你好"。</p>
+                <p>如果绑定成功，AI 会立刻回复（示例回复："你好，我是啪啪虾。"）。</p>
+                
+                <p><strong>第二步：验证任务能力</strong></p>
+                <p>发送一个任务型请求，例如："帮我查询24小时最新AI资讯"。</p>
+                <p>AI 会返回结构化的资讯摘要，例如：</p>
+                <ul>
+                    <li>乐鲲成立 AMILabs，融资十亿</li>
+                    <li>安士博完成300亿美元融资</li>
+                </ul>
+                
+                <p>这说明 ClawBot 不只是一个聊天入口，而是能够调用 OpenClaw Agent 执行真实任务的接口。</p>
+                <p>可以这样理解：<strong>"先发'你好'测连通 → 再发任务测能力"</strong>，就像装好设备后"先开机看看亮不亮，再运行程序看功能"。</p>
+            </div>
+
+            <!-- Page 7 -->
+            <div class="page" data-index="7">
+                <div class="breadcrumb">第四部分 › 操作示例</div>
+                <div class="example-block">
+                    <div class="example-title">【操作示例】在微信 ClawBot 中发送消息验证 AI 响应</div>
+                    <p><strong>前置条件</strong>：已完成扫码绑定，ClawBot 对话窗口已打开</p>
+                    <p><strong>操作步骤</strong>：</p>
+                    <ol>
+                        <li>打开手机微信，进入 ClawBot 对话窗口</li>
+                        <li>发送"你好"</li>
+                        <li>观察 AI 是否正常回复（若秒回则连通性正常）</li>
+                        <li>发送"帮我查询24小时最新AI资讯"</li>
+                        <li>等待 AI 返回结构化资讯列表</li>
+                    </ol>
+                    <p><strong>结果</strong>：AI 能正常回复问候语，并能返回结构化的24小时 AI 资讯摘要，说明 ClawBot 功能正常。</p>
+                </div>
+            </div>
+
+            <!-- Page 8 -->
+            <div class="page" data-index="8">
+                <div class="breadcrumb">第五部分 › 四项限制</div>
+                <h2>第五部分：使用边界——你需要知道的四项限制</h2>
+                <p>在正式使用 ClawBot 之前，有四项核心限制需要了解：</p>
+                
+                <h3>限制一：单点绑定</h3>
+                <p>一个微信账号只能绑定一个 OpenClaw。如果要更换绑定的 OpenClaw 账号，需要重新执行安装流程并扫码绑定。形象地说：<strong>"只能养一只虾，不能养多只虾"</strong>。</p>
+                <p><span class="emphasis">需要注意的是：</span><strong>"不要误以为可以在多个微信号上同时使用同一个 OpenClaw"</strong>，正确认知是一对一绑定，换账号需重新扫码。</p>
+                
+                <h3>限制二：仅手机端支持</h3>
+                <p>目前 ClawBot 只支持在手机版微信中使用，电脑版微信即使更新到最新版也没有 ClawBot 入口。这是因为该插件的设计初衷是让用户更方便地脱离电脑、在外出时也能灵活调用 OpenClaw。</p>
+                
+                <h3>限制三：默认绑定主 Agent，可切换</h3>
+                <p>ClawBot 默认绑定的是你的主 Agent。如果要切换到其他 Agent，在终端执行：</p>
+                <div class="code-block">openclaw config</div>
+                <p>记住：<strong>"看到需要切换 Agent，立刻想到运行 openclaw config 重新绑定指定 Agent"</strong>。</p>
+                
+                <h3>限制四：官方安全隔离</h3>
+                <p>作为官方插件，ClawBot 提供完整的安全隔离：他人无法添加你的 ClawBot，也无法将其拉进群聊。这是官方插件相对于第三方方案最重要的安全优势，可以理解为<strong>"私人管家，外人无法接触"</strong>。</p>
+            </div>
+
+            <!-- Page 9 -->
+            <div class="page" data-index="9">
+                <div class="breadcrumb">第五部分 › 操作示例</div>
+                <div class="example-block">
+                    <div class="example-title">【操作示例】ClawBot 限制理解与 Agent 切换</div>
+                    <p><strong>四项限制速记</strong>：单点绑定 · 仅手机端 · 可切 Agent · 官方安全</p>
+                    <p><strong>Agent 切换步骤</strong>：</p>
+                    <ol>
+                        <li>打开本地终端</li>
+                        <li>执行：<code>openclaw config</code></li>
+                        <li>按提示将账号绑定到目标 Agent</li>
+                    </ol>
+                    <p><strong>结果</strong>：ClawBot 对话窗口中的 AI 身份切换为目标 Agent。</p>
+                </div>
+            </div>
+
+            <!-- Page 10 -->
+            <div class="page" data-index="10">
+                <div class="breadcrumb">本课总结</div>
+                <h2>本课总结</h2>
+                
+                <h3>核心要点</h3>
+                <ul>
+                    <li><strong>前置准备</strong>：微信升级到最新版本，确认"设置→插件"中出现 ClawBot 入口；若未出现，后台重启微信触发灰度推送</li>
+                    <li><strong>安装绑定</strong>：终端执行 <code>npx -y &lt;官方命令&gt;</code> → 弹出二维码 → 用目标微信号扫码 → 手机端点击"连接"</li>
+                    <li><strong>效果验证</strong>：先发"你好"测连通性，再发任务型消息验证 Agent 能力</li>
+                    <li><strong>使用限制</strong>：单点绑定（一虾原则）、仅手机端、可通过 <code>openclaw config</code> 切换 Agent、官方安全隔离</li>
+                    <li><strong>战略价值</strong>：AI 嵌入 IM 是主流趋势，越早上手先发优势越大</li>
+                </ul>
+                
+                <h3>易错提醒</h3>
+                <ul class="emphasis">
+                    <li>不要在未看到 ClawBot 插件入口的情况下就开始安装步骤</li>
+                    <li>扫码时必须确认使用正确的微信号，因为绑定后无法在不重新扫码的情况下更换账号</li>
+                    <li>不要误以为可以在多个微信号上同时绑定同一个 OpenClaw（一对一绑定）</li>
+                    <li>电脑版微信不支持 ClawBot，不要在电脑端找入口</li>
+                    <li>不要使用非官方渠道的安装命令，应使用官方提供的完整命令</li>
+                </ul>
+                
+                <h3>知识应用范围</h3>
+                <p>本教程中学到的操作逻辑具有较强的迁移性：微信升级找灰度功能的方法，可迁移至其他 App 新功能激活场景；<code>npx -y</code> 命令行安装模式，可迁移至其他 Node.js 工具的安装；扫码授权绑定流程，是大多数"第三方服务绑定 IM 账号"场景的通用模式；ClawBot 的单点绑定与安全隔离设计，也是评估其他 AI-IM 集成方案时的重要参考维度。</p>
+            </div>
+
+        </div><!-- end content-area -->
+
+        <div id="nav-bar">
+            <button class="nav-btn" id="prev-btn" onclick="goPrev()">← 上一页</button>
+            <span class="page-indicator" id="page-info">1 / 11</span>
+            <button class="nav-btn" id="next-btn" onclick="goNext()">下一页 →</button>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL = 11;
+        let currentPage = 0;
+
+        function showPage(index) {
+            if (index < 0 || index >= TOTAL) return;
+            
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelector(`.page[data-index="${index}"]`).style.display = 'block';
+            
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const activeItem = document.querySelector(`.nav-item[data-target="${index}"]`);
+            if (activeItem) activeItem.classList.add('active');
+            
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').style.visibility = index === TOTAL - 1 ? 'hidden' : 'visible';
+            document.getElementById('page-info').textContent = `${index + 1} / ${TOTAL}`;
+            
+            currentPage = index;
+            document.getElementById('content-area').scrollTop = 0;
+            
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+            }
+        }
+
+        function goPrev() { showPage(currentPage - 1); }
+        function goNext() { showPage(currentPage + 1); }
+
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                showPage(parseInt(item.getAttribute('data-target')));
+            });
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Initialize
+        showPage(0);
+    </script>
+</body>
+</html>
