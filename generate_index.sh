@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'HTML' > index.html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -20,9 +22,16 @@
     <div class="course-card">
         <p>本项目中的所有网页内容：</p>
         <ul>
-            <li><a href="168-openclaw-wechat/OpenClaw接入微信_TXD图文教材.html">📄 OpenClaw接入微信_TXD图文教材</a></li>
-            <li><a href="168-openclaw-wechat/OpenClaw接入微信_思维导图.html">📄 OpenClaw接入微信_思维导图</a></li>
+HTML
+
+find . -type f -name "*.html" ! -name "index.html" | sed 's|^\./||' | sort | while read -r file; do
+    filename=$(basename "$file" .html)
+    echo "            <li><a href=\"$file\">📄 $filename</a></li>" >> index.html
+done
+
+cat << 'HTML' >> index.html
         </ul>
     </div>
 </body>
 </html>
+HTML
